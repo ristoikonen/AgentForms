@@ -1,3 +1,4 @@
+using AgentForms.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,6 +19,7 @@ namespace AgentForms
         // Sorting state
         private int _sortColumn = 0;
         private SortOrder _sortOrder = SortOrder.Descending;
+        private ProcPidi? CurrentPidi = null;
 
         public Form1()
         {
@@ -346,6 +348,55 @@ namespace AgentForms
             catch (Win32Exception wx)
             {
                 MessageBox.Show(this, "User declined elevation or failed: " + wx.Message, "Elevation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void listViewProcesses_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (listViewProcesses.SelectedItems.Count == 0)
+            {
+                CurrentPidi = null;
+                return;
+            }
+
+            var item = listViewProcesses.SelectedItems[0];
+            if (item.Tag is int pid)
+            {
+                try
+                {
+                    var pidi = new ProcPidi(pid);
+                    try
+                    {
+                        var proc = pidi.Proc;
+                        if (proc != null)
+                        {
+                            try { pidi.Path = proc.MainModule?.FileName ?? string.Empty; } catch { pidi.Path = string.Empty; }
+                        }
+                    }
+                    catch { }
+
+                    CurrentPidi = pidi;
+                    var procId = CurrentPidi?.Proc?.Id ?? -1;
+                    //var vm = CurrentPidi?.Proc?.WorkingSet64 ?? 0;
+                    //int vmKB = (int)vm / 1024;
+                    //int vmMB = (int)vm / (1024 * 1024);
+                    //double vmGB = (double)vm / (1024 * 1024 * 1024);
+                   
+                    UpdateStatus($"Selected PID: {pid}, CurrentPidi Proc's Id is {procId}, VM: {CurrentPidi?.WorkingMemoryMB} MB, {CurrentPidi?.WorkingMemoryGB} GB.");
+
+
+
+                }
+                catch (Exception ex)
+                {
+                    // If process cannot be accessed, clear selection wrapper
+                    CurrentPidi = null;
+                    UpdateStatus("Selected process unavailable: " + ex.Message);
+                }
+            }
+            else
+            {
+                CurrentPidi = null;
             }
         }
     }

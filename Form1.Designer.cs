@@ -60,6 +60,7 @@
             listViewProcesses.View = View.Details;
             listViewProcesses.ColumnClick += listViewProcesses_ColumnClick;
             listViewProcesses.DoubleClick += listViewProcesses_DoubleClick;
+            listViewProcesses.SelectedIndexChanged += listViewProcesses_SelectedIndexChanged;
             // 
             // colMemory
             // 
